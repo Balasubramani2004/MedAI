@@ -1,6 +1,13 @@
+# Python
 __pycache__/
-*.pkl
-*.csv
-*.gz
+*.pyc
+
+# Models
+
+# Virtual env
+venv/
 .env
-.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
