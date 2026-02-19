@@ -1,198 +1,1284 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>MedAI Clinical Severity Predictor</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedAI — Clinical Severity Predictor</title>
 
-<style>
-body {
-  margin: 0;
-  font-family: "Segoe UI", Arial, sans-serif;
-  background: #f3f6fb;
-}
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
 
-/* Center container */
-.container {
-  max-width: 720px;
-  margin: 40px auto;
-  padding: 20px;
-}
+  <style>
+    /* ===== Reset & Base ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Card */
-.card {
-  background: white;
-  padding: 28px;
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-}
+    :root {
+      --bg: #0f172a;
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+      --card: #1e293b;
+      --card-light: #334155;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-glow: rgba(99, 102, 241, 0.4);
+      --accent: #14b8a6;
+      --accent-glow: rgba(20, 184, 166, 0.3);
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 20px;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,.3);
+      --shadow-md: 0 8px 32px rgba(0,0,0,.4);
+      --shadow-lg: 0 20px 60px rgba(0,0,0,.5);
+      --glow: 0 0 30px var(--primary-glow);
+    }
 
-/* Title */
-h1 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #1a2b4b;
-}
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      background-image: 
+        radial-gradient(at 20% 10%, rgba(99, 102, 241, 0.15) 0, transparent 50%),
+        radial-gradient(at 80% 90%, rgba(20, 184, 166, 0.15) 0, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(79, 70, 229, 0.05) 0, transparent 50%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
 
-/* Inputs */
-label {
-  font-weight: 600;
-  margin-top: 12px;
-  display: block;
-}
+    /* Animated background particles */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,0.1), transparent),
+        radial-gradient(2px 2px at 60% 70%, rgba(255,255,255,0.1), transparent),
+        radial-gradient(1px 1px at 50% 50%, rgba(255,255,255,0.1), transparent);
+      background-size: 200px 200px, 300px 300px, 150px 150px;
+      animation: particle-float 30s linear infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
 
-textarea, input, select {
-  width: 100%;
-  padding: 12px;
-  margin-top: 6px;
-  border-radius: 8px;
-  border: 1px solid #d0d7e2;
-  font-size: 14px;
-}
+    @keyframes particle-float {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-200px); }
+    }
 
-/* Button */
-button {
-  margin-top: 18px;
-  width: 100%;
-  padding: 14px;
-  border: none;
-  border-radius: 10px;
-  background: #2563eb;
-  color: white;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-}
+    /* ===== Navbar ===== */
+    .navbar {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+      padding: 0 2rem;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 24px rgba(0,0,0,.3), 0 0 40px rgba(99, 102, 241, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
 
-button:hover {
-  background: #1d4ed8;
-}
+    .navbar .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: white;
+      font-weight: 800;
+      font-size: 1.5rem;
+      font-family: 'Poppins', sans-serif;
+      letter-spacing: -0.5px;
+    }
 
-/* Result card */
-.result {
-  margin-top: 22px;
-  padding: 18px;
-  border-radius: 12px;
-  background: #f7f9fc;
-  display: none;
-}
+    .navbar .logo-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px var(--primary-glow);
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
 
-/* Severity colors */
-.low { color: #16a34a; font-weight: bold; }
-.medium { color: #ea580c; font-weight: bold; }
-.high { color: #dc2626; font-weight: bold; }
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 4px 16px var(--primary-glow); }
+      50% { box-shadow: 0 4px 24px var(--primary-glow), 0 0 40px var(--primary-glow); }
+    }
 
-/* Clinical box */
-.clinical {
-  margin-top: 12px;
-  background: #eef2ff;
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 14px;
-}
+    .navbar .logo-icon svg {
+      width: 24px;
+      height: 24px;
+    }
 
-/* Explain toggle */
-.explain-box {
-  display: none;
-  margin-top: 12px;
-  padding: 12px;
-  background: #fff7ed;
-  border-radius: 8px;
-  font-size: 14px;
-}
+    .navbar .badge {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(20, 184, 166, 0.2));
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: var(--accent);
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(20, 184, 166, 0.5);
+    }
 
-.explain-btn {
-  margin-top: 10px;
-  background: #0ea5e9;
-}
-</style>
+    /* ===== Layout ===== */
+    .main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      padding: 2.5rem 1rem 3rem;
+      position: relative;
+      z-index: 1;
+    }
 
+    .wrapper {
+      width: 100%;
+      max-width: 1400px;
+      display: grid;
+      grid-template-columns: 480px 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    .input-panel {
+      position: sticky;
+      top: 96px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .results-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      min-height: 400px;
+    }
+
+    /* ===== Card ===== */
+    .card {
+      background: rgba(30, 41, 59, 0.6);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.05);
+      padding: 2rem;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+
+    .card:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      box-shadow: var(--shadow-lg), 0 0 40px rgba(99, 102, 241, 0.15), inset 0 1px 0 rgba(255,255,255,0.08);
+      transform: translateY(-2px);
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .card-title .icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .icon-purple { 
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); 
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+    }
+    .icon-blue   { 
+      background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%); 
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+    }
+    .icon-green  { 
+      background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%); 
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+    }
+    .icon-orange { 
+      background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); 
+      box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
+    }
+
+    /* ===== Form Elements ===== */
+    .form-group {
+      margin-bottom: 1.15rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .form-group textarea,
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 13px 16px;
+      border: 2px solid rgba(99, 102, 241, 0.2);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: var(--text);
+      background: rgba(15, 23, 42, 0.5);
+      transition: all .2s ease;
+      outline: none;
+    }
+
+    .form-group textarea::placeholder,
+    .form-group input::placeholder {
+      color: var(--text-muted);
+      opacity: 0.6;
+    }
+
+    .form-group textarea:focus,
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 4px 20px rgba(99, 102, 241, 0.2);
+      background: rgba(15, 23, 42, 0.8);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    /* ===== Button ===== */
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+      color: white;
+      font-size: 1.05rem;
+      font-weight: 700;
+      font-family: 'Poppins', sans-serif;
+      cursor: pointer;
+      transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 0.75rem;
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      transform: translate(-50%, -50%);
+      transition: width .6s, height .6s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5), 0 0 40px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-primary:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary:disabled {
+      opacity: .65;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-primary .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid rgba(255,255,255,.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ===== Results Panel ===== */
+    /* Styles moved to main layout section above */
+
+    /* Severity Banner */
+    .severity-banner {
+      border-radius: var(--radius);
+      padding: 2rem;
+      text-align: center;
+      display: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .severity-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      opacity: 0.1;
+      background-image: radial-gradient(circle at 20% 50%, currentColor 0, transparent 50%);
+    }
+
+    .severity-banner.sev-low {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.15) 100%);
+      border: 2px solid rgba(16, 185, 129, 0.4);
+      box-shadow: 0 8px 32px rgba(16, 185, 129, 0.2), inset 0 1px 0 rgba(16, 185, 129, 0.1);
+    }
+
+    .severity-banner.sev-medium {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.15) 100%);
+      border: 2px solid rgba(245, 158, 11, 0.4);
+      box-shadow: 0 8px 32px rgba(245, 158, 11, 0.2), inset 0 1px 0 rgba(245, 158, 11, 0.1);
+    }
+
+    .severity-banner.sev-high {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.15) 100%);
+      border: 2px solid rgba(239, 68, 68, 0.4);
+      box-shadow: 0 8px 32px rgba(239, 68, 68, 0.2), inset 0 1px 0 rgba(239, 68, 68, 0.1);
+    }
+
+    .severity-banner .sev-label {
+      font-size: .8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      opacity: .8;
+      margin-bottom: 6px;
+    }
+
+    .severity-banner .sev-value {
+      font-size: 2.5rem;
+      font-weight: 900;
+      font-family: 'Poppins', sans-serif;
+      text-shadow: 0 2px 20px currentColor;
+    }
+
+    .sev-low .sev-value { color: #10b981; }
+    .sev-medium .sev-value { color: #f59e0b; }
+    .sev-high .sev-value { color: #ef4444; }
+
+    .severity-banner .confidence-bar {
+      margin-top: 16px;
+      height: 8px;
+      background: rgba(0,0,0,.3);
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,.2);
+    }
+
+    .severity-banner .confidence-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width .8s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 10px currentColor;
+    }
+
+    .sev-low .confidence-fill { background: #10b981; }
+    .sev-medium .confidence-fill { background: #f59e0b; }
+    .sev-high .confidence-fill { background: #ef4444; }
+
+    .severity-banner .confidence-text {
+      font-size: .82rem;
+      font-weight: 600;
+      margin-top: 8px;
+      opacity: .8;
+    }
+
+    /* Advice Banner */
+    .advice-card {
+      border-radius: var(--radius);
+      padding: 1.35rem 1.5rem;
+      display: none;
+      align-items: flex-start;
+      gap: 14px;
+      font-size: .92rem;
+      line-height: 1.6;
+      font-weight: 500;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .advice-card.adv-low {
+      background: rgba(16, 185, 129, 0.15);
+      border-left: 4px solid var(--success);
+      color: #6ee7b7;
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
+    }
+
+    .advice-card.adv-medium {
+      background: rgba(245, 158, 11, 0.15);
+      border-left: 4px solid var(--warning);
+      color: #fcd34d;
+      box-shadow: 0 4px 20px rgba(245, 158, 11, 0.15);
+    }
+
+    .advice-card.adv-high {
+      background: rgba(239, 68, 68, 0.15);
+      border-left: 4px solid var(--danger);
+      color: #fca5a5;
+      box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15);
+    }
+
+    .advice-card .adv-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* Recommendations Card */
+    .recommendations-card {
+      display: none;
+    }
+
+    .rec-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    .rec-urgency {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .urgency-immediate {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .urgency-prompt {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+
+    .urgency-routine {
+      background: rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .rec-action {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .rec-timeframe {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      font-weight: 500;
+    }
+
+    .rec-care-level {
+      display: inline-block;
+      background: rgba(99, 102, 241, 0.15);
+      color: var(--primary);
+      padding: 4px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .rec-details {
+      list-style: none;
+      padding: 0;
+    }
+
+    .rec-details li {
+      padding: 0.6rem 0;
+      padding-left: 1.75rem;
+      position: relative;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+      border-left: 2px solid rgba(99, 102, 241, 0.2);
+      margin-left: 0.5rem;
+    }
+
+    .rec-details li::before {
+      content: '▸';
+      position: absolute;
+      left: 0.5rem;
+      color: var(--primary);
+      font-weight: bold;
+    }
+
+    /* Clinical Features */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .feature-item {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: 14px;
+      padding: 1.15rem;
+      text-align: center;
+      transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .feature-item:hover {
+      transform: translateY(-3px);
+      border-color: rgba(99, 102, 241, 0.4);
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2);
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    .feature-item .feat-icon {
+      font-size: 1.6rem;
+      margin-bottom: 8px;
+      filter: drop-shadow(0 2px 8px rgba(99, 102, 241, 0.3));
+    }
+
+    .feature-item .feat-value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary);
+      font-family: 'Poppins', sans-serif;
+      text-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .feature-item .feat-label {
+      font-size: .75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      margin-top: 4px;
+    }
+
+    /* Explanation */
+    .explanation-toggle {
+      display: none;
+      width: 100%;
+      padding: 12px;
+      background: rgba(99, 102, 241, 0.1);
+      border: 2px solid rgba(99, 102, 241, 0.2);
+      border-radius: 12px;
+      font-size: .87rem;
+      font-weight: 600;
+      font-family: inherit;
+      color: var(--text);
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+
+    .explanation-toggle:hover {
+      background: rgba(99, 102, 241, 0.15);
+      border-color: rgba(99, 102, 241, 0.4);
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.2);
+    }
+
+    .explanation-box {
+      display: none;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 12px;
+      padding: 1.15rem 1.35rem;
+      font-size: .9rem;
+      line-height: 1.7;
+      color: #fcd34d;
+      margin-top: .75rem;
+      backdrop-filter: blur(10px);
+    }
+
+    /* Error toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      background: rgba(30, 41, 59, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      color: white;
+      padding: 16px 28px;
+      border-radius: 14px;
+      font-size: .92rem;
+      font-weight: 500;
+      box-shadow: 0 12px 48px rgba(0,0,0,.5), 0 0 0 1px rgba(99, 102, 241, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: transform .35s cubic-bezier(.4,0,.2,1);
+      z-index: 999;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: .8rem;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(99, 102, 241, 0.15);
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    /* Empty State Styling */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 2rem;
+      color: var(--text-muted);
+    }
+
+    .empty-state .illustration {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+      opacity: 0.6;
+    }
+
+    .empty-state h3 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .empty-state p {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .empty-state strong {
+      color: var(--primary);
+    }
+
+    .empty-state .illustration {
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 1200px) {
+      .wrapper {
+        grid-template-columns: 420px 1fr;
+      }
+    }
+
+    @media (max-width: 968px) {
+      .wrapper {
+        grid-template-columns: 1fr;
+        max-width: 600px;
+      }
+
+      .input-panel {
+        position: relative;
+        top: 0;
+      }
+
+      .results-panel {
+        grid-column: 1;
+        grid-row: auto;
+      }
+
+      .navbar { 
+        padding: 0 1rem; 
+        height: 64px;
+      }
+
+      .navbar .logo {
+        font-size: 1.25rem;
+      }
+
+      .navbar .logo-icon {
+        width: 36px;
+        height: 36px;
+      }
+
+      .navbar .badge {
+        font-size: 0.65rem;
+        padding: 4px 10px;
+      }
+
+      .card {
+        padding: 1.5rem;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ===== Animations ===== */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-in {
+      animation: fadeSlideUp .5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }\n\n    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.5);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.5);
+      border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(99, 102, 241, 0.7);
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="container">
-  <div class="card">
-
-```
-<h1>MedAI Clinical Severity Predictor</h1>
-
-<label>Describe Symptoms</label>
-<textarea id="text" rows="3" placeholder="e.g. fever, headache, breathing difficulty"></textarea>
-
-<label>Age</label>
-<input type="number" id="age">
-
-<label>Gender</label>
-<select id="gender">
-  <option value="male">Male</option>
-  <option value="female">Female</option>
-</select>
-
-<label>Duration (days)</label>
-<input type="number" id="duration">
-
-<button onclick="predict()">Analyze Severity</button>
-
-<!-- RESULT -->
-<div class="result" id="result"></div>
-
-<button class="explain-btn" id="explainBtn" style="display:none;" onclick="toggleExplain()">
-  Show Clinical Explanation
-</button>
-
-<div class="explain-box" id="explainBox"></div>
-```
-
-  </div>
-</div>
-
-<script>
-async function predict() {
-
-  const text = document.getElementById("text").value;
-  const age = parseInt(document.getElementById("age").value);
-  const gender = document.getElementById("gender").value;
-  const duration_days = parseInt(document.getElementById("duration").value);
-
-  try {
-    const res = await fetch("http://127.0.0.1:8000/predict", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, age, gender, duration_days })
-    });
-
-    const data = await res.json();
-
-    const sevClass = data.severity.toLowerCase();
-
-    document.getElementById("result").style.display = "block";
-    document.getElementById("result").innerHTML = `
-      <h3>Severity: <span class="${sevClass}">${data.severity}</span></h3>
-      <p><b>Confidence:</b> ${data.confidence}</p>
-      <p><b>Advice:</b> ${data.advice}</p>
-
-      <div class="clinical">
-        <b>Clinical Indicators</b><br>
-        ICU Risk: ${data.clinical_features.icu_risk}<br>
-        Mortality Risk: ${data.clinical_features.mortality_risk}<br>
-        Length of Stay: ${data.clinical_features.length_of_stay_days} days
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L12 22M2 12L22 12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="12" cy="12" r="3" fill="white" opacity="0.6"/>
+        </svg>
       </div>
-    `;
+      MedAI
+    </div>
+    <span class="badge">AI Clinical Support</span>
+  </nav>
 
-    document.getElementById("explainBox").innerText = data.explanation;
-    document.getElementById("explainBtn").style.display = "block";
+  <!-- Main Content -->
+  <main class="main">
+    <div class="wrapper">
 
-  } catch (err) {
-    alert("❌ Backend not running. Start with: uvicorn app:app --reload");
-  }
-}
+      <!-- LEFT: Input Form Panel -->
+      <div class="input-panel">
 
-function toggleExplain() {
-  const box = document.getElementById("explainBox");
-  box.style.display = box.style.display === "none" ? "block" : "none";
-}
-</script>
+        <!-- Symptom Card -->
+        <div class="card">
+          <div class="card-title">
+            <span class="icon icon-purple">&#128172;</span>
+            Patient Symptoms
+          </div>
+
+          <div class="form-group">
+            <label>Symptom Description</label>
+            <textarea 
+              id="text" 
+              placeholder="Describe symptoms in detail, e.g. persistent fever for 3 days, severe headache, shortness of breath, chest tightness..."
+              minlength="5"
+              maxlength="2000"
+              required
+            ></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Age</label>
+              <input 
+                type="number" 
+                id="age" 
+                placeholder="e.g. 45" 
+                min="0" 
+                max="120" 
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label>Gender</label>
+              <select id="gender" required>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Duration of Symptoms (Days)</label>
+            <input 
+              type="number" 
+              id="duration" 
+              placeholder="e.g. 5" 
+              min="0" 
+              max="3650"
+              required
+            />
+          </div>
+
+          <button class="btn-primary" id="analyzeBtn" onclick="predict()">
+            <span class="spinner" id="spinner"></span>
+            <span id="btnText">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
+                <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              Analyze Severity
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- RIGHT: Results Panel -->
+      <div class="results-panel">
+
+        <!-- Empty State -->
+        <div class="card" id="emptyState" style="min-height: 400px; display: flex; align-items: center; justify-content: center;">
+          <div class="empty-state">
+            <div class="illustration">&#129657;</div>
+            <h3>Ready to Analyze</h3>
+            <p>Enter patient symptoms and clinical details on the left, then click <strong>Analyze Severity</strong> to get an AI-powered triage prediction.</p>
+          </div>
+        </div>
+
+        <!-- Severity Result (hidden initially) -->
+        <div class="severity-banner" id="severityBanner">
+          <div class="sev-label">Predicted Severity</div>
+          <div class="sev-value" id="sevValue"></div>
+          <div class="confidence-bar"><div class="confidence-fill" id="confFill"></div></div>
+          <div class="confidence-text" id="confText"></div>
+        </div>
+
+        <!-- Advice (hidden initially) -->
+        <div class="advice-card" id="adviceCard">
+          <span class="adv-icon" id="advIcon"></span>
+          <span id="advText"></span>
+        </div>
+
+        <!-- Detailed Recommendations (hidden initially) -->
+        <div class="card recommendations-card" id="recommendationsCard">
+          <div class="rec-header">
+            <div class="card-title" style="margin-bottom:0;">
+              <span class="icon icon-orange">&#128161;</span>
+              Recommendations
+            </div>
+            <span class="rec-urgency" id="recUrgency"></span>
+          </div>
+          <div class="rec-action" id="recAction"></div>
+          <div class="rec-timeframe" id="recTimeframe"></div>
+          <div class="rec-care-level" id="recCareLevel"></div>
+          <ul class="rec-details" id="recDetails"></ul>
+        </div>
+
+        <!-- Clinical Features (hidden initially) -->
+        <div class="card" id="clinicalCard" style="display:none;">
+          <div class="card-title">
+            <span class="icon icon-blue">&#128202;</span>
+            Clinical Indicators
+          </div>
+          <div class="feature-grid">
+            <div class="feature-item">
+              <div class="feat-icon">&#127973;</div>
+              <div class="feat-value" id="icuVal">—</div>
+              <div class="feat-label">ICU Risk</div>
+            </div>
+            <div class="feature-item">
+              <div class="feat-icon">&#9888;&#65039;</div>
+              <div class="feat-value" id="mortVal">—</div>
+              <div class="feat-label">Mortality Risk</div>
+            </div>
+            <div class="feature-item">
+              <div class="feat-icon">&#128197;</div>
+              <div class="feat-value" id="losVal">—</div>
+              <div class="feat-label">Length of Stay</div>
+            </div>
+            <div class="feature-item">
+              <div class="feat-icon">&#128203;</div>
+              <div class="feat-value" id="diagVal">—</div>
+              <div class="feat-label">Diagnoses</div>
+            </div>
+          </div>
+
+          <button class="explanation-toggle" id="explainToggle" onclick="toggleExplain()">
+            &#128161; Show AI Explanation
+          </button>
+          <div class="explanation-box" id="explainBox"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <strong>MedAI</strong> &copy; 2026 &mdash; AI-Driven Clinical Severity Prediction &middot; For research &amp; educational purposes only
+  </footer>
+
+  <!-- Error Toast -->
+  <div class="toast" id="toast">
+    <span>&#10060;</span>
+    <span id="toastMsg">Something went wrong</span>
+  </div>
+
+  <script>
+    /* ===== Toast ===== */
+    function showToast(msg, duration = 4000) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), duration);
+    }
+
+    /* ===== Enhanced Validation ===== */
+    function validateInputs() {
+      const text = document.getElementById('text').value.trim();
+      const age = document.getElementById('age').value;
+      const duration = document.getElementById('duration').value;
+
+      // Basic text validation
+      if (!text) { 
+        showToast('Please describe the symptoms'); 
+        return false; 
+      }
+      
+      if (text.length < 5) { 
+        showToast('Symptom description is too short (minimum 5 characters)'); 
+        return false; 
+      }
+      
+      if (text.length > 2000) { 
+        showToast('Symptom description is too long (maximum 2000 characters)'); 
+        return false; 
+      }
+      
+      if (!/[a-zA-Z]/.test(text)) {
+        showToast('Please enter a valid symptom description with actual text');
+        return false;
+      }
+      
+      const textLower = text.toLowerCase();
+      
+      // POSITIVE VALIDATION: Must contain actual medical symptoms
+      const validMedicalTerms = [
+        'fever', 'pain', 'ache', 'cough', 'cold', 'flu', 'headache', 'migraine',
+        'nausea', 'vomit', 'diarrhea', 'constipation', 'fatigue', 'tired', 'weakness',
+        'dizzy', 'breath', 'wheez', 'asthma', 'shortness', 'congestion', 'sneez',
+        'chest', 'heart', 'cardiac', 'palpitation', 'stomach', 'abdominal', 'cramp',
+        'seizure', 'tremor', 'numbness', 'tingling', 'stroke', 'blurred',
+        'joint', 'muscle', 'back', 'neck', 'shoulder', 'sprain', 'swell',
+        'rash', 'itch', 'hives', 'burn', 'wound', 'bleed', 'sore',
+        'ear', 'throat', 'tonsil', 'nose', 'hearing',
+        'urin', 'bladder', 'kidney', 'infection', 'discharge', 'chills',
+        'insomnia', 'sleep', 'anxiety', 'dehydrat', 'thirst'
+      ];
+      
+      const hasMedicalTerm = validMedicalTerms.some(term => textLower.includes(term));
+      
+      if (!hasMedicalTerm) {
+        showToast('Please describe actual medical symptoms (e.g., fever, pain, cough). Vague descriptions are not sufficient.', 6000);
+        return false;
+      }
+      
+      // Quick check for obviously bad inputs
+      const badPhrases = ['just testing', 'just test', 'test test', 'nothing', 'no symptoms',
+                          'i died', 'i am dead', 'passed away', 'lol lol', 'haha haha', 'joke'];
+      
+      if (badPhrases.some(phrase => textLower.includes(phrase))) {
+        showToast('Please enter serious medical symptoms only.', 5000);
+        return false;
+      }
+      // Age validation
+      if (!age) { 
+        showToast('Please enter patient age'); 
+        return false; 
+      }
+      
+      const ageNum = parseInt(age);
+      if (isNaN(ageNum) || ageNum < 0 || ageNum > 120) { 
+        showToast('Please enter a valid age (0-120)'); 
+        return false; 
+      }
+
+      // Duration validation
+      if (!duration) { 
+        showToast('Please enter symptom duration'); 
+        return false; 
+      }
+      
+      const durationNum = parseInt(duration);
+      if (isNaN(durationNum) || durationNum < 0) { 
+        showToast('Please enter a valid duration (0 or more days)'); 
+        return false; 
+      }
+      
+      if (durationNum > 3650) { 
+        showToast('Duration seems unrealistic (max 3650 days / ~10 years)'); 
+        return false; 
+      }
+      
+      // Logical consistency checks
+      if (ageNum < 1 && durationNum > 365) {
+        showToast('Warning: Infant with symptoms >1 year seems inconsistent');
+        // Don't block, just warn
+      }
+      
+      if (durationNum > 365) {
+        const years = Math.floor(durationNum / 365);
+        showToast(`Note: Symptoms lasting ${years}+ years require comprehensive medical evaluation`, 6000);
+        // Don't block, just inform
+      }
+
+      return true;
+    }
+
+    /* ===== Predict ===== */
+    async function predict() {
+      if (!validateInputs()) return;
+
+      const btn = document.getElementById('analyzeBtn');
+      const spinner = document.getElementById('spinner');
+      const btnText = document.getElementById('btnText');
+
+      // Loading state
+      btn.disabled = true;
+      spinner.style.display = 'block';
+      btnText.innerHTML = 'Analyzing...';
+
+      const text = document.getElementById('text').value.trim();
+      const age = parseInt(document.getElementById('age').value);
+      const gender = document.getElementById('gender').value;
+      const duration_days = parseInt(document.getElementById('duration').value);
+
+      try {
+        const res = await fetch('http://127.0.0.1:8000/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, age, gender, duration_days })
+        });
+
+        // Handle different error responses
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => null);
+          
+          if (res.status === 422) {
+            // Validation error from backend
+            const errorMsg = errorData?.detail?.[0]?.msg || 'Invalid input data';
+            showToast(`Validation Error: ${errorMsg}`, 5000);
+          } else if (res.status === 500) {
+            // Server error
+            const errorMsg = errorData?.detail || 'Server error occurred';
+            showToast(`Server Error: ${errorMsg}`, 5000);
+          } else {
+            showToast('An unexpected error occurred', 4000);
+          }
+          return;
+        }
+
+        const data = await res.json();
+        renderResults(data);
+
+      } catch (err) {
+        console.error('Request error:', err);
+        if (err.name === 'TypeError' && err.message.includes('fetch')) {
+          showToast('Backend not reachable. Start server with: python -m uvicorn app:app --reload', 6000);
+        } else {
+          showToast('Network error: Unable to connect to server', 5000);
+        }
+      } finally {
+        btn.disabled = false;
+        spinner.style.display = 'none';
+        btnText.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
+            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          Analyze Severity
+        `;
+      }
+    }
+
+    /* ===== Render Results ===== */
+    function renderResults(data) {
+      const sev = data.severity; // "Low", "Medium", "High"
+      const sevLower = sev.toLowerCase();
+
+      // Hide empty state
+      document.getElementById('emptyState').style.display = 'none';
+
+      // Severity Banner
+      const banner = document.getElementById('severityBanner');
+      banner.className = 'severity-banner sev-' + sevLower + ' animate-in';
+      banner.style.display = 'block';
+      document.getElementById('sevValue').textContent = sev;
+      const confPct = Math.round(data.confidence * 100);
+      document.getElementById('confFill').style.width = confPct + '%';
+      document.getElementById('confText').textContent = 'Confidence: ' + confPct + '%';
+
+      // Advice Card
+      const advCard = document.getElementById('adviceCard');
+      advCard.className = 'advice-card adv-' + sevLower + ' animate-in';
+      advCard.style.display = 'flex';
+      const icons = { low: '&#9989;', medium: '&#9888;&#65039;', high: '&#128680;' };
+      document.getElementById('advIcon').innerHTML = icons[sevLower] || '';
+      document.getElementById('advText').textContent = data.advice;
+
+      // Detailed Recommendations
+      const recCard = document.getElementById('recommendationsCard');
+      recCard.style.display = 'block';
+      recCard.classList.add('animate-in');
+      
+      const rec = data.recommendations;
+      const urgencyClass = 'urgency-' + rec.urgency.toLowerCase();
+      document.getElementById('recUrgency').textContent = rec.urgency;
+      document.getElementById('recUrgency').className = 'rec-urgency ' + urgencyClass;
+      document.getElementById('recAction').textContent = rec.action;
+      document.getElementById('recTimeframe').textContent = '⏱ ' + rec.timeframe;
+      document.getElementById('recCareLevel').textContent = '🏥 ' + rec.care_level;
+      
+      // Populate details list
+      const detailsList = document.getElementById('recDetails');
+      detailsList.innerHTML = '';
+      rec.details.forEach(detail => {
+        const li = document.createElement('li');
+        li.textContent = detail;
+        detailsList.appendChild(li);
+      });
+
+      // Clinical Features
+      const cf = data.clinical_features;
+      document.getElementById('icuVal').textContent = (cf.icu_risk * 100).toFixed(1) + '%';
+      document.getElementById('mortVal').textContent = (cf.mortality_risk * 100).toFixed(1) + '%';
+      document.getElementById('losVal').textContent = cf.length_of_stay_days.toFixed(1) + 'd';
+      document.getElementById('diagVal').textContent = cf.num_diagnoses;
+
+      const clinCard = document.getElementById('clinicalCard');
+      clinCard.style.display = 'block';
+      clinCard.classList.add('animate-in');
+
+      // Explanation (with warnings if present)
+      let explanationText = data.explanation;
+      
+      // Show warnings as toast if present
+      if (data.warnings && data.warnings.length > 0) {
+        const warningMsg = '⚠️ Note: ' + data.warnings.join('. ');
+        showToast(warningMsg, 6000);
+      }
+      
+      document.getElementById('explainBox').textContent = explanationText;
+      document.getElementById('explainToggle').style.display = 'block';
+      document.getElementById('explainBox').style.display = 'none';
+    }
+
+    /* ===== Toggle Explanation ===== */
+    function toggleExplain() {
+      const box = document.getElementById('explainBox');
+      const btn = document.getElementById('explainToggle');
+      if (box.style.display === 'none') {
+        box.style.display = 'block';
+        btn.innerHTML = '&#128161; Hide AI Explanation';
+      } else {
+        box.style.display = 'none';
+        btn.innerHTML = '&#128161; Show AI Explanation';
+      }
+    }
+
+    /* ===== Enter Key ===== */
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+        predict();
+      }
+    });
+  </script>
 
 </body>
 </html>
